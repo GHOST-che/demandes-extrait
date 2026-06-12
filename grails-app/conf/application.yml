@@ -1,0 +1,164 @@
+info:
+    app:
+        name: '@info.app.name@'
+        version: '@info.app.version@'
+        grailsVersion: '@info.app.grailsVersion@'
+
+grails:
+    codegen:
+        defaultPackage: backend
+    profile: rest-api
+
+    mime:
+        types:
+            json:
+                - application/json
+                - text/json
+            hal:
+                - application/hal+json
+                - application/hal+xml
+            xml:
+                - text/xml
+                - application/xml
+            atom: application/atom+xml
+            css: text/css
+            csv: text/csv
+            js: text/javascript
+            rss: application/rss+xml
+            text: text/plain
+            all: '*/*'
+
+    cors:
+        enabled: true
+        allowedOrigins:
+            - '*'
+        allowedMethods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+        allowedHeaders:
+            - '*'
+
+    plugin:
+        springsecurity:
+            securityConfigType: "Annotation"
+            rejectIfNoRule: false
+            fii:
+                rejectPublicInvocations: false
+            active: true
+
+            userLookup:
+                userDomainClassName: 'backend.User'
+                authorityJoinClassName: 'backend.UserRole'
+            authority:
+                className: 'backend.Role'
+
+            password:
+                algorithm: 'bcrypt'
+
+            controllerAnnotations:
+                staticRules:
+                    - pattern: '/'
+                      access: [ 'permitAll' ]
+                    - pattern: '/error'
+                      access: [ 'permitAll' ]
+                    - pattern: '/api/login'
+                      access: [ 'permitAll' ]
+                    - pattern: '/api/demandes'
+                      access: [ 'permitAll' ]
+
+            filterChain:
+                chainMap:
+                    - pattern: '/assets/**'
+                      filters: 'none'
+                    - pattern: '/**/js/**'
+                      filters: 'none'
+                    - pattern: '/**/css/**'
+                      filters: 'none'
+                    - pattern: '/**/images/**'
+                      filters: 'none'
+                    - pattern: '/**/favicon.ico'
+                      filters: 'none'
+                    - pattern: '/api/login'
+                      filters: 'JOINED_FILTERS,-authenticationProcessingFilter,-securityContextPersistenceFilter,-rememberMeAuthenticationFilter'
+                    - pattern: '/api/**'
+                      filters: 'JOINED_FILTERS,-anonymousAuthenticationFilter,-exceptionTranslationFilter,-authenticationProcessingFilter,-securityContextPersistenceFilter'
+                    - pattern: '/**'
+                      filters: 'JOINED_FILTERS,-restTokenValidationFilter,-restExceptionTranslationFilter'
+
+            rest:
+                login:
+                    active: true
+                    endpointUrl: '/api/login'
+                    failureStatusCode: 401
+                    useJsonCredentials: true
+                logout:
+                    endpointUrl: '/api/logout'
+                token:
+                    validation:
+                        enableAnonymousAccess: true
+                    storage:
+                        jwt:
+                            secret: ${JWT_SECRET}
+                            expiration: 3600
+
+hibernate:
+    dialect: org.hibernate.dialect.MariaDBDialect
+    cache:
+        queries: false
+        use_second_level_cache: false
+        use_query_cache: false
+
+dataSource:
+    pooled: true
+    driverClassName: org.mariadb.jdbc.Driver
+    dialect: org.hibernate.dialect.MariaDBDialect
+    url: ${DB_URL_DATASOURCE}
+    username: ${DB_USERNAME_DATASOURCE}
+    password: ${DB_PASSWORD_DATASOURCE}
+
+environments:
+    development:
+        dataSource:
+            dbCreate: create-drop
+            url: ${DB_URL_DEV}
+            username: ${DB_USERNAME_DEV}
+            password: ${DB_PASSWORD_DEV}
+    test:
+        dataSource:
+            dbCreate: create-drop
+            url: ${DB_URL_TEST}
+            username: ${DB_USERNAME_TEST}
+            password: ${DB_PASSWORD_TEST}
+    production:
+        dataSource:
+            dbCreate: none
+            url: ${DB_URL_PROD}
+            username: ${DB_USERNAME_PROD}
+            password: ${DB_PASSWORD_PROD}
+            properties:
+                jmxEnabled: true
+                initialSize: 5
+                maxActive: 50
+                minIdle: 5
+                maxIdle: 25
+                maxWait: 10000
+                maxAge: 600000
+                timeBetweenEvictionRunsMillis: 5000
+                minEvictableIdleTimeMillis: 60000
+                validationQuery: SELECT 1
+                validationQueryTimeout: 3
+                validationInterval: 15000
+                testOnBorrow: true
+                testWhileIdle: true
+                testOnReturn: false
+                jdbcInterceptors: ConnectionState
+                defaultTransactionIsolation: 2
+
+---
+logging:
+    level:
+        org.springframework: ERROR
+        org.springframework.security: TRACE
